@@ -1,0 +1,16 @@
+Port 8000:
+  Received packets: 4345
+  Jitter: 0.002362 seconds
+  Reliability: 89.866 %
+Port 8001:
+  Received packets: 4329
+  Jitter: 0.002361 seconds
+  Reliability: 89.627 %
+Port 8002:
+  Received packets: 33724
+  Jitter: 0.000503 seconds
+  Reliability: 89.444 %
+Port 8003:
+  Received packets: 34330
+  Jitter: 0.000510 seconds
+  Reliability: 89.466 %
