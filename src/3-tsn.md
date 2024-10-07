@@ -40,7 +40,10 @@ following topics will be covered.
 
 ## Using TSN-enabled Network Cards
 
+The network card must meet certain requirements to support traffic
+control on Linux. The details are described in the section.
 
+[Network Hardware](3.1-network_hardware.md)
  
 ## Priority Translation
 
@@ -48,7 +51,7 @@ The priority is used to mark the urgentness of the data packets, which
 presents in each layer of protocols for slightly different
 purposes. The The details are described in the section.
 
-[Priority Translation](3.1-priority_translation.md)
+[Priority Translation](3.2-priority_translation.md)
 
 ## Gating and Queing using Linux TAPRIO
 
