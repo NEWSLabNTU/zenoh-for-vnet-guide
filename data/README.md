@@ -71,6 +71,36 @@ Through the information mentioned above, we can list the characteristics of vari
 
     - **Point cloud data** needs high reliability for accurate 3D mapping and object detection.
 
+## Zenoh QoS Parameters
+
+For the purpose of mapping all kinds of traffic flows in remote driving, we also summarize the QoS parameters in Zenoh in the following table.
+
+- Congestion control
+
+| Congestion control | Definition |
+| ------------------ | ---------- |
+| Z_CONGESTION_CONTROL_BLOCK | Messages are not dropped in case of congestion. |
+| Z_CONGESTION_CONTROL_DROP | Messages are dropped in case of congestion. |
+
+- Priority
+
+| Priority | No. | Definition |
+| -------- | --- | ---------- |
+| Z_PRIORITY_REAL_TIME | 1 | Priority for ``RealTime`` messages. |
+| Z_PRIORITY_INTERACTIVE_HIGH | 2 | Highest priority for ``Interactive`` messages. |
+| Z_PRIORITY_INTERACTIVE_LOW | 3 | Lowest priority for ``Interactive`` mesages. |
+| Z_PRIORITY_DATA_HIGH | 4 | Highest priority for ``Data`` messages. |
+| Z_PRIORITY_DATA | 5 | Default priority for ``Data`` messages. |
+| Z_PRIORITY_DATA_LOW | 6 | Lowest priority for ``Data`` messages. |
+| Z_PRIORITY_BACKGROUND | 7 | Priority for ``Background traffic`` messages. |
+
+- Express
+
+| Is_expres | Definition |
+| --------- | ---------- |
+| true | Zenoh will not wait to batch this message with others to reduce the bandwith. ( lower     latency ) |
+| false | Zenoh will not wait to batch this message with others to reduce the bandwith. |
+
 
 ## References 
 
