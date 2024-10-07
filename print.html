@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -226,12 +226,353 @@ and Link-State. In P2P mode, the peers assume that every peer in the
 network is directly reachable. In Link-State mode, each peer performs
 link-state routing algorithm and each peer maintains a netowrk graph
 internally.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="tsn-network-on-linux"><a class="header" href="#tsn-network-on-linux">TSN Network on Linux</a></h1>
+<h2 id="qos-parameters"><a class="header" href="#qos-parameters">Qos Parameters</a></h2>
+<p>For the purpose of mapping all kinds of traffic flows in remote
+driving, we also summarize the QoS parameters in Zenoh in the
+following table.</p>
+<h3 id="congestion-control"><a class="header" href="#congestion-control">Congestion control</a></h3>
+<table><thead><tr><th>Congestion control</th><th>Definition</th></tr></thead><tbody>
+<tr><td>Z_CONGESTION_CONTROL_BLOCK</td><td>Messages are not dropped in case of congestion.</td></tr>
+<tr><td>Z_CONGESTION_CONTROL_DROP</td><td>Messages are dropped in case of congestion.</td></tr>
+</tbody></table>
+<h3 id="priority"><a class="header" href="#priority">Priority</a></h3>
+<table><thead><tr><th>Priority</th><th>No.</th><th>Definition</th></tr></thead><tbody>
+<tr><td>Z_PRIORITY_REAL_TIME</td><td>1</td><td>Priority for <code>RealTime</code> messages.</td></tr>
+<tr><td>Z_PRIORITY_INTERACTIVE_HIGH</td><td>2</td><td>Highest priority for <code>Interactive</code> messages.</td></tr>
+<tr><td>Z_PRIORITY_INTERACTIVE_LOW</td><td>3</td><td>Lowest priority for <code>Interactive</code> mesages.</td></tr>
+<tr><td>Z_PRIORITY_DATA_HIGH</td><td>4</td><td>Highest priority for <code>Data</code> messages.</td></tr>
+<tr><td>Z_PRIORITY_DATA</td><td>5</td><td>Default priority for <code>Data</code> messages.</td></tr>
+<tr><td>Z_PRIORITY_DATA_LOW</td><td>6</td><td>Lowest priority for <code>Data</code> messages.</td></tr>
+<tr><td>Z_PRIORITY_BACKGROUND</td><td>7</td><td>Priority for <code>Background traffic</code> messages.</td></tr>
+</tbody></table>
+<h3 id="express"><a class="header" href="#express">Express</a></h3>
+<table><thead><tr><th>Is_expres</th><th>Definition</th></tr></thead><tbody>
+<tr><td>true</td><td>Zenoh will not wait to batch this message with others to reduce the bandwith. ( lower     latency )</td></tr>
+<tr><td>false</td><td>Zenoh will not wait to batch this message with others to reduce the bandwith.</td></tr>
+</tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="time-sensitive-network-tsn-on-linux"><a class="header" href="#time-sensitive-network-tsn-on-linux">Time-Sensitive Network (TSN) on Linux</a></h1>
 <p>The work was done under the cooperation of NEWSLAB, National Taiwan
-University and ADLINK Corp. The online tutorial can be found at</p>
-<p><a href="https://tsn-tutorial.readthedocs.io/en/latest/">https://tsn-tutorial.readthedocs.io/en/latest/</a></p>
-<p>and the document source is located at</p>
-<p><a href="https://github.com/Adlink-ROS/TSN-tutorial">https://github.com/Adlink-ROS/TSN-tutorial</a></p>
+University and ADLINK Corp. Most of the content are copied from the
+<a href="https://tsn-tutorial.readthedocs.io/en/latest/">TSN tutorial on
+ADLINK</a>.</p>
+<p>The time-sensitive network (TSN) is a collection of standards built
+atop of standard Ethernet that describes a reliable and low-latency
+network architecture based on layer 2 IEEE 802.1Q VLAN. It approaches
+the latency control in many aspects, including time synchronization,
+priority selection, traffic shaping and capacity reservation. Each of
+them contributes to a portion of the overall network.</p>
+<p>This chapter introduces a practical TSN setup using commodity hardware
+done in a combination of VLAN, Linux TC and userspace tools. This
+setup allows the network packets to carry extra priority information
+from one host to another. The Linux kernel can then applies traffic
+control using the priority information on packets. The mapping among
+application-level QoS and traffic control policies are studied to
+enable further userspace integration. In the following article, the
+following topics will be covered.</p>
+<ol>
+<li>
+<p>Priority translation</p>
+<p>Introduce the priority settings in each network layer and mapping
+among them.</p>
+</li>
+<li>
+<p>Gating and queuing control using Linux TAPRIO</p>
+<p>It focues on tc-taprio(8) buitin the Linux kernel using the
+priority information.</p>
+</li>
+<li>
+<p>Application QoS and traffic control policies</p>
+<p>Describe the application QoS in ROS and Zenoh and their connection
+to Linux TC policies.</p>
+</li>
+</ol>
+<h2 id="using-tsn-enabled-network-cards"><a class="header" href="#using-tsn-enabled-network-cards">Using TSN-enabled Network Cards</a></h2>
+<p>The network card must meet certain requirements to support traffic
+control on Linux. The details are described in the section.</p>
+<p><a href="3.1-network_hardware.html">Network Hardware</a></p>
+<h2 id="priority-translation"><a class="header" href="#priority-translation">Priority Translation</a></h2>
+<p>The priority is used to mark the urgentness of the data packets, which
+presents in each layer of protocols for slightly different
+purposes. The The details are described in the section.</p>
+<p><a href="3.2-priority_translation.html">Priority Translation</a></p>
+<h2 id="gating-and-queing-using-linux-taprio"><a class="header" href="#gating-and-queing-using-linux-taprio">Gating and Queing using Linux TAPRIO</a></h2>
+<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
+<pre><code class="language-mermaid">flowchart TB
+    subgraph peer2 [&quot;Bob&quot;]
+        direction TB
+
+        peer2-vlan2[&quot;vlan2
+        192.168.2.2&quot;]
+        peer2-eth0[&quot;eth0
+        10.8.0.2&quot;]
+
+        peer2-vlan2 --- peer2-eth0
+    end
+
+    subgraph peer1 [&quot;Alice&quot;]
+        direction TB
+
+        peer1-vlan2[&quot;vlan2
+        192.168.2.1&quot;]
+        peer1-eno1[&quot;eno1
+        10.8.0.1&quot;]
+
+        peer1-vlan2 --- peer1-eno1
+    end
+
+    phy(&quot;Local Network
+    10.8.0.0/24&quot;)
+
+    phy --- peer2-eth0
+    phy --- peer1-eno1
+</code></pre>
+<h2 id="benchmark"><a class="header" href="#benchmark">Benchmark</a></h2>
+<p>The effectiveness of </p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="using-tsn-enabled-network-hardware"><a class="header" href="#using-tsn-enabled-network-hardware">Using TSN-enabled Network Hardware</a></h1>
+<p>The hardware card must be carefully selected to enable full hardware
+offloading on Linux. The Intel I210
+(<a href="https://cdrdv2-public.intel.com/333016/333016%20-%20I210_Datasheet_v_3_7.pdf">spec</a>)
+is recommended in our settings.</p>
+<h2 id="verifying-the-network-card"><a class="header" href="#verifying-the-network-card">Verifying the Network Card</a></h2>
+<p>The network device must have at least 2 or more builtin hardware
+queues builtin. To verify it,</p>
+<pre><code class="language-sh">ethtool -l eth0
+</code></pre>
+<p>It shows that Intel I210 has at least 4 channels.</p>
+<pre><code>Channel parameters for eth0
+Pre-set maximums:
+RX:		0
+TX:		0
+Other:		1
+Combined:	4
+Current hardware settings:
+RX:		0
+TX:		0
+Other:		1
+Combined:	4
+</code></pre>
+<p>The second is the check whether the card suppots full hardware
+offloading.  To verify it, create a TAPRIO policy on the device with
+<code>flag 0x1</code>.  It should run without erros.</p>
+<pre><code class="language-sh">sudo tc qdisc replace dev eth0 parent root handle 100 taprio \
+                     num_tc 3 \
+                     map 2 2 1 0 2 2 2 2 2 2 2 2 2 2 2 2 \
+                     queues 1@0 1@0 1@0 \
+                     base-time 1528743495910289987 \
+                     sched-entry S 01 300000 \
+                     sched-entry S 02 300000 \
+                     sched-entry S 04 400000 \
+                     flags 0x1 \
+                     txtime-delay 200000 \
+                     clockid CLOCK_TAI 
+</code></pre>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<h3 id="cannot-detect-interface"><a class="header" href="#cannot-detect-interface">Cannot detect interface</a></h3>
+<ul>
+<li>The port used for the experiment cannot be detected. It is likely a hardware issue.</li>
+<li>After we removed the network card and switched it to another slot, then reconfigured the IP and VLAN settings.</li>
+</ul>
+<p>Unable to ping the other VLAN.
+Shortly after booting up, unable to ping even the physical interfaces.
+Checked the routes:</p>
+<pre><code>192.168.1.0/24 dev vlan1 proto kernel scope link src 192.168.1.2 metric 400 linkdown 
+192.168.7.0/24 dev enP4p4s0 proto kernel scope link src 192.168.7.2 metric 102 linkdown
+</code></pre>
+<p>Display as &quot;linkdown,&quot; manually bringing them up (using ip link set up) had no effect.
+Physical interface status displayed as:</p>
+<pre><code>&lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; 
+</code></pre>
+<p>Attempts such as reconfiguring IP settings and restarting via nmtui were unsuccessful.
+The issue was ultimately resolved by changing the network card to a different slot.</p>
+<!-- ### socket-priority experiment on 2023/08/11 and 2023/08/18 -->
+<!-- **Later, we discovered that the errors encountered that day were due to the failure to enable priority 0,** -->
+<!-- **causing ARP packets not to be transmitted.** -->
+<!-- **These are the experimental log.** -->
+<!-- [ARP issues](./TAPRIO%20experiment/ARP%20Issues.md) -->
+<!-- ### Calculate RTT -->
+<!-- **We use RTT to verify whether the queue's activation and latency behave as expected.** -->
+<!-- [Round Trip Time](./TAPRIO%20experiment/Round%20Trip%20Time.md) -->
+<div style="break-before: page; page-break-before: always;"></div><h1 id="priority-translation-1"><a class="header" href="#priority-translation-1">Priority Translation</a></h1>
+<p>The priority is used to mark the urgentness of the data packets, which
+presents in each layer of protocols for slightly different purposes.</p>
+<p><img src="figures/tsn-priority.drawio.png" alt="" /></p>
+<ul>
+<li>
+<p>Zenoh priority in userspace</p>
+<p>It is an internal priotiy defined in the Zenoh network.</p>
+</li>
+<li>
+<p>Linux socket priority</p>
+<p>The priority is used within the Linux system, which are respected
+by Linux traffic control (TC) policies priority.</p>
+</li>
+<li>
+<p>Traffic class</p>
+<p>The traffic class on marked on packets on TX hardware queue. The
+Linux kernel maps the socket priorities to traffic classes before
+putting them to hardware queues.</p>
+</li>
+<li>
+<p>VLAN Priority Code Point (PCP)</p>
+<p>The priority number is labeled in the VLAN header, which enables
+layer 2 queing and traffic control defined in IEEE 802.1Q
+standard.</p>
+</li>
+</ul>
+<h1 id="priority-mapping-practices"><a class="header" href="#priority-mapping-practices">Priority Mapping Practices</a></h1>
+<h2 id="setting-socket-priority-in-programs"><a class="header" href="#setting-socket-priority-in-programs">Setting Socket Priority in Programs</a></h2>
+<p>In this TSN network, the application is responsible for providing
+desired priority on data packets.  The standard method is to configure
+the <code>SO_PRIORITY</code> option on sockets using the <code>setsockopt</code> system
+call.  Here are C and Rust examples.</p>
+<p>In the C programming language, the socket is represented by a file
+descriptor.  The file descriptor and the priority number are provided
+to <code>setsockopt()</code>.</p>
+<pre><code class="language-c">#include &lt;sys/socket.h&gt;
+
+// Open a socket
+int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+// Set the SO_PRIORITY to 6
+int priority = 6;
+int ret = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &amp;priority, sizeof(priority));
+if (ret &lt; 0) { /* error */ }
+</code></pre>
+<p>In the Rust programming language, a TCP connection is created by a
+<code>TcpStream</code> and the underlying file descriptor is obtained from the
+stream.  We call the <code>setsockopt()</code> from the
+<a href="https://crates.io/crates/nix">nix</a> library to configure the socket
+priority.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use nix::sys::socket::{sockopt::Priority, getsockopt, setsockopt};
+use std::net::TcpStream;
+use std::os::unix::io::AsRawFd;
+
+// Create a TCP socket
+let mut stream = TcpStream::connect(&quot;11.22.33.44&quot;)?;
+
+// The the underlying file descriptor of the socket.
+let fd = stream.as_raw_fd();
+
+// Set SO_PRIORITY to 6.
+setsockopt(fd, Priority, 6)?;
+<span class="boring">}
+</span></code></pre></pre>
+<h3 id="mapping-socket-priority-to-traffic-classes"><a class="header" href="#mapping-socket-priority-to-traffic-classes">Mapping Socket Priority to Traffic Classes</a></h3>
+<p>The traffic classes are respected by hardware queues within network
+cards. This is an example TAPRIO qdisc policy configured on physical
+network device <code>eth0</code> the device.</p>
+<pre><code class="language-sh">sudo tc qdisc replace dev eth0 parent root handle 100 taprio \
+                     num_tc 3 \
+                     map 2 2 1 0 2 2 2 2 2 2 2 2 2 2 2 2 \
+                     queues 1@0 1@0 1@0 \
+                     base-time 1528743495910289987 \
+                     sched-entry S 01 300000 \
+                     sched-entry S 02 300000 \
+                     sched-entry S 04 400000 \
+                     flags 0x1 \
+                     txtime-delay 200000 \
+                     clockid CLOCK_TAI 
+</code></pre>
+<p>Here is the break down of the command.</p>
+<ul>
+<li>
+<p><code>num_tc</code>: number of traffic class</p>
+</li>
+<li>
+<p><code>map</code>: The relationship between Linux priority and traffic class.</p>
+</li>
+<li>
+<p><code>queue</code>: The queues in &quot;count@offset&quot; notation specifies the queue
+range for each traffic class. According to the official
+documents, the ranges should not overlap and must be a contiguous
+range of queues.</p>
+</li>
+<li>
+<p><code>flags</code> configures the mode of operation.  It can be 0x1 or
+0x2. Enabling the execution of the Task Admission Control (TAS)
+functionality either in software or hardware.</p>
+</li>
+</ul>
+<h3 id="mapping-socket-priority-to-vlan-pcp"><a class="header" href="#mapping-socket-priority-to-vlan-pcp">Mapping Socket Priority to VLAN PCP</a></h3>
+<p>This command line creates a virtual VLAN device named <code>vlan1</code> with
+socket priority to VLAN PCP mappings for egress packets. This exmaple
+simply maps socket priority 0 to PCP 1, socket priority 1 to PCP 1 and
+so on.</p>
+<pre><code class="language-sh">sudo ip link set dev vlan1 type vlan egress 0:0 1:1 2:2 3:3 4:4 5:5 6:6 7:7
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="benchmark-1"><a class="header" href="#benchmark-1">Benchmark</a></h1>
+<h2 id="tested-scenario"><a class="header" href="#tested-scenario">Tested Scenario</a></h2>
+<p>The benchmark assumes a remote driving scenario, in which an operator
+controls a remote vehicle. The vehicle uploads a live camera and point
+cloud stream, while the operator sends control commands to the
+vehicle.</p>
+<p><img src="figures/5g_scenario.png" alt="" /></p>
+<p><img src="figures/5g_setup.png" alt="" /></p>
+<h2 id="message-payload-characteristics"><a class="header" href="#message-payload-characteristics">Message Payload Characteristics</a></h2>
+<ul>
+<li>Control Messages
+<ul>
+<li><strong>Message Size</strong>: Typically small (e.g., a few bytes to tens of bytes), as it often includes control commands or instructions.</li>
+<li><strong>Message Rate</strong>: High frequency, usually sent multiple times per second (e.g., 10-100 msg/s) to ensure real-time control.</li>
+<li><strong>Latency Sensitivity</strong>: Extremely low latency required, as delayed control messages could result in unsafe operations.</li>
+<li><strong>Reliability Requirement</strong>: High reliability to avoid control errors.</li>
+</ul>
+</li>
+<li>Camera Feed
+<ul>
+<li><strong>Message Size</strong>: Large, as each message might contain image or video data. Size can range from kilobytes (KB) to megabytes (MB), depending on resolution and compression.</li>
+<li><strong>Message Rate</strong>: Moderate to high frequency, depending on the frame rate (e.g., 15-60 frames per second, each frame being one message).</li>
+<li><strong>Latency Sensitivity</strong>: Moderate latency tolerance, though real-time feedback is still important.</li>
+<li><strong>Reliability Requirement</strong>: Moderate to high reliability, as missing frames may degrade video quality but not disrupt overall system functionality.</li>
+</ul>
+</li>
+<li>Point Cloud Data
+<ul>
+<li><strong>Message Size</strong>: Very large, as point cloud data contains 3D spatial coordinates. Size can range from hundreds of kilobytes (KB) to several megabytes (MB) per message.</li>
+<li><strong>Message Rate</strong>: Lower frequency, typically a few messages per second (e.g., 1-10 msg/s) depending on the system’s sensor capture rate.</li>
+<li><strong>Latency Sensitivity</strong>: Moderate, as point cloud data is often used for mapping or object detection.</li>
+<li><strong>Reliability Requirement</strong>: High reliability needed for accurate environmental mapping and object recognition.</li>
+</ul>
+</li>
+<li>Vehicle Status Updates
+<ul>
+<li><strong>Message Size</strong>: Small (e.g., a few bytes), as it typically includes parameters such as speed, acceleration, and fuel levels.</li>
+<li><strong>Message Rate</strong>: High frequency, sent multiple times per second (e.g., 10-50 msg/s) for real-time monitoring of the vehicle's condition.</li>
+<li><strong>Latency Sensitivity</strong>: Low latency required to ensure that the system has up-to-date information about the vehicle’s status.</li>
+<li><strong>Reliability Requirement</strong>: High reliability to avoid inaccurate status reporting.</li>
+</ul>
+</li>
+</ul>
+<h2 id="message-payload-requirements"><a class="header" href="#message-payload-requirements">Message Payload Requirements</a></h2>
+<table><thead><tr><th align="left">Type</th><th align="right">Min Bits/s rate</th><th align="center">Production Interval (ms)</th><th align="center">Payload Size (Bytes)</th><th align="right">Delay Constraint (D<sub>i</sub>)</th><th align="center">Reliability Constraint (R<sub>i</sub>)</th></tr></thead><tbody>
+<tr><td align="left">Control</td><td align="right">1K</td><td align="center">100</td><td align="center">128</td><td align="right">50</td><td align="center">99.99%</td></tr>
+<tr><td align="left">Camera</td><td align="right">4M</td><td align="center">33.33</td><td align="center">1K</td><td align="right">100</td><td align="center">99%</td></tr>
+<tr><td align="left">Point Cloud</td><td align="right">16M</td><td align="center">100</td><td align="center">1K</td><td align="right">200</td><td align="center">99.9%</td></tr>
+<tr><td align="left">Camera</td><td align="right">5K</td><td align="center">100</td><td align="center">128</td><td align="right">100</td><td align="center">99%</td></tr>
+</tbody></table>
+<h2 id="the-effectiveness-of-taprio"><a class="header" href="#the-effectiveness-of-taprio">The Effectiveness of TAPRIO</a></h2>
+<table><thead><tr><th>With TAPRIO?</th><th></th></tr></thead><tbody>
+<tr><td>Yes</td><td><img src="../data/0619/w_taprio/80m/80m_taprio.png" alt="" /></td></tr>
+<tr><td>No</td><td><img src="../data/0619/wo_taprio/80m/80m.png" alt="" /></td></tr>
+</tbody></table>
+<h2 id="the-effectiveness-of-signal-strength"><a class="header" href="#the-effectiveness-of-signal-strength">The Effectiveness of Signal Strength</a></h2>
+<h3 id="under-general-signal-condition"><a class="header" href="#under-general-signal-condition">Under General Signal Condition</a></h3>
+<table><thead><tr><th>Message Class</th><th>Without TAPRIO</th><th>With TAPRIO</th></tr></thead><tbody>
+<tr><td>Control</td><td><img src="../data/0613/wo_taprio/general/port8000.png" alt="" /></td><td><img src="../data/0613/w_taprio/general/port8000.png" alt="" /></td></tr>
+<tr><td>Camera</td><td><img src="../data/0613/wo_taprio/general/port8002.png" alt="" /></td><td><img src="../data/0613/w_taprio/general/port8000.png" alt="" /></td></tr>
+<tr><td>Point Cloud</td><td><img src="../data/0613/wo_taprio/general/port8003.png" alt="" /></td><td><img src="../data/0613/w_taprio/general/port8000.png" alt="" /></td></tr>
+<tr><td>Status</td><td><img src="../data/0613/wo_taprio/general/port8001.png" alt="" /></td><td><img src="../data/0613/w_taprio/general/port8000.png" alt="" /></td></tr>
+</tbody></table>
+<h3 id="under-good-signal-condition"><a class="header" href="#under-good-signal-condition">Under Good Signal Condition</a></h3>
+<table><thead><tr><th>Message Class</th><th>Without TAPRIO</th><th>With TAPRIO</th></tr></thead><tbody>
+<tr><td>Control</td><td><img src="../data/0613/wo_taprio/good/port8000.png" alt="" /></td><td><img src="../data/0613/w_taprio/good/port8000.png" alt="" /></td></tr>
+<tr><td>Camera</td><td><img src="../data/0613/wo_taprio/good/port8002.png" alt="" /></td><td><img src="../data/0613/w_taprio/good/port8000.png" alt="" /></td></tr>
+<tr><td>Point Cloud</td><td><img src="../data/0613/wo_taprio/good/port8003.png" alt="" /></td><td><img src="../data/0613/w_taprio/good/port8000.png" alt="" /></td></tr>
+<tr><td>Status</td><td><img src="../data/0613/wo_taprio/good/port8001.png" alt="" /></td><td><img src="../data/0613/w_taprio/good/port8000.png" alt="" /></td></tr>
+</tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="etsi-c-its-on-zenoh"><a class="header" href="#etsi-c-its-on-zenoh">ETSI C-ITS on Zenoh</a></h1>
 <p>The work aims to enable the vehicle-to-vehicle communication
 capability on Zenoh, in which the European C-ITS standard is
@@ -246,7 +587,7 @@ geographical data multicast and peer discovery.</li>
 <li>The Zenoh routing algorithm should be modified to recognize the
 movement of vehicles according to geographical information.</li>
 </ol>
-<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
+<h2 id="architecture-1"><a class="header" href="#architecture-1">Architecture</a></h2>
 <p>The overall architecture is shown in the figure below. The BTP/GN
 stack will be added to Zenoh apart from existing TCP/IP stack. A
 dedicated Zenoh-to-C-ITS brige will be implemented to process messages
@@ -293,6 +634,8 @@ vanetza-btp-service repository.</p>
         <script src="book.js" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
+                <script type="text/javascript" src="mermaid.min.js"></script>
+                <script type="text/javascript" src="mermaid-init.js"></script>
         
                         <script type="text/javascript">
         window.addEventListener('load', function() {

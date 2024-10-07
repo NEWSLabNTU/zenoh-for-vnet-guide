@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>ETSI C-ITS on Zenoh - Zenoh for Vehicle Network Guide</title>
+        <title>Benchmark - Zenoh for Vehicle Network Guide</title>
                 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html" class="active"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html" class="active"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -143,41 +143,88 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="etsi-c-its-on-zenoh"><a class="header" href="#etsi-c-its-on-zenoh">ETSI C-ITS on Zenoh</a></h1>
-<p>The work aims to enable the vehicle-to-vehicle communication
-capability on Zenoh, in which the European C-ITS standard is
-preferred. It resues the protocols and data format already implemented
-in the Vanetza project (<a href="https://www.vanetza.org/">doc</a>). There are
-two major works planned in the project.</p>
-<ol>
-<li>Integrate the BTP/GN network stack from Vanetza as the replacement
-of TCP/IP on Zenoh. It enables high-level applications to process
-vehicle-to-anything messages in a native way, and enables
-geographical data multicast and peer discovery.</li>
-<li>The Zenoh routing algorithm should be modified to recognize the
-movement of vehicles according to geographical information.</li>
-</ol>
-<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
-<p>The overall architecture is shown in the figure below. The BTP/GN
-stack will be added to Zenoh apart from existing TCP/IP stack. A
-dedicated Zenoh-to-C-ITS brige will be implemented to process messages
-defined in ETSI C-ITS.</p>
-<p><img src="figures/cits-on-zenoh.drawio.png" alt="" /></p>
-<h2 id="btp-integration-in-rust-and-zenoh"><a class="header" href="#btp-integration-in-rust-and-zenoh">BTP Integration in Rust and Zenoh</a></h2>
-<p>This is a working-in-progress task to add BTP/GN link to Zenoh. The
-initial step is to implement the Rust interface for Vanetza's C++ BTP
-socket. The code implementqation can be found in the
-vanetza-btp-service repository.</p>
-<p><a href="https://github.com/NEWSLabNTU/vanetza-btp-service/">vanetza-btp-service</a></p>
+                        <h1 id="benchmark"><a class="header" href="#benchmark">Benchmark</a></h1>
+<h2 id="tested-scenario"><a class="header" href="#tested-scenario">Tested Scenario</a></h2>
+<p>The benchmark assumes a remote driving scenario, in which an operator
+controls a remote vehicle. The vehicle uploads a live camera and point
+cloud stream, while the operator sends control commands to the
+vehicle.</p>
+<p><img src="figures/5g_scenario.png" alt="" /></p>
+<p><img src="figures/5g_setup.png" alt="" /></p>
+<h2 id="message-payload-characteristics"><a class="header" href="#message-payload-characteristics">Message Payload Characteristics</a></h2>
+<ul>
+<li>Control Messages
+<ul>
+<li><strong>Message Size</strong>: Typically small (e.g., a few bytes to tens of bytes), as it often includes control commands or instructions.</li>
+<li><strong>Message Rate</strong>: High frequency, usually sent multiple times per second (e.g., 10-100 msg/s) to ensure real-time control.</li>
+<li><strong>Latency Sensitivity</strong>: Extremely low latency required, as delayed control messages could result in unsafe operations.</li>
+<li><strong>Reliability Requirement</strong>: High reliability to avoid control errors.</li>
+</ul>
+</li>
+<li>Camera Feed
+<ul>
+<li><strong>Message Size</strong>: Large, as each message might contain image or video data. Size can range from kilobytes (KB) to megabytes (MB), depending on resolution and compression.</li>
+<li><strong>Message Rate</strong>: Moderate to high frequency, depending on the frame rate (e.g., 15-60 frames per second, each frame being one message).</li>
+<li><strong>Latency Sensitivity</strong>: Moderate latency tolerance, though real-time feedback is still important.</li>
+<li><strong>Reliability Requirement</strong>: Moderate to high reliability, as missing frames may degrade video quality but not disrupt overall system functionality.</li>
+</ul>
+</li>
+<li>Point Cloud Data
+<ul>
+<li><strong>Message Size</strong>: Very large, as point cloud data contains 3D spatial coordinates. Size can range from hundreds of kilobytes (KB) to several megabytes (MB) per message.</li>
+<li><strong>Message Rate</strong>: Lower frequency, typically a few messages per second (e.g., 1-10 msg/s) depending on the system’s sensor capture rate.</li>
+<li><strong>Latency Sensitivity</strong>: Moderate, as point cloud data is often used for mapping or object detection.</li>
+<li><strong>Reliability Requirement</strong>: High reliability needed for accurate environmental mapping and object recognition.</li>
+</ul>
+</li>
+<li>Vehicle Status Updates
+<ul>
+<li><strong>Message Size</strong>: Small (e.g., a few bytes), as it typically includes parameters such as speed, acceleration, and fuel levels.</li>
+<li><strong>Message Rate</strong>: High frequency, sent multiple times per second (e.g., 10-50 msg/s) for real-time monitoring of the vehicle's condition.</li>
+<li><strong>Latency Sensitivity</strong>: Low latency required to ensure that the system has up-to-date information about the vehicle’s status.</li>
+<li><strong>Reliability Requirement</strong>: High reliability to avoid inaccurate status reporting.</li>
+</ul>
+</li>
+</ul>
+<h2 id="message-payload-requirements"><a class="header" href="#message-payload-requirements">Message Payload Requirements</a></h2>
+<table><thead><tr><th align="left">Type</th><th align="right">Min Bits/s rate</th><th align="center">Production Interval (ms)</th><th align="center">Payload Size (Bytes)</th><th align="right">Delay Constraint (D<sub>i</sub>)</th><th align="center">Reliability Constraint (R<sub>i</sub>)</th></tr></thead><tbody>
+<tr><td align="left">Control</td><td align="right">1K</td><td align="center">100</td><td align="center">128</td><td align="right">50</td><td align="center">99.99%</td></tr>
+<tr><td align="left">Camera</td><td align="right">4M</td><td align="center">33.33</td><td align="center">1K</td><td align="right">100</td><td align="center">99%</td></tr>
+<tr><td align="left">Point Cloud</td><td align="right">16M</td><td align="center">100</td><td align="center">1K</td><td align="right">200</td><td align="center">99.9%</td></tr>
+<tr><td align="left">Camera</td><td align="right">5K</td><td align="center">100</td><td align="center">128</td><td align="right">100</td><td align="center">99%</td></tr>
+</tbody></table>
+<h2 id="the-effectiveness-of-taprio"><a class="header" href="#the-effectiveness-of-taprio">The Effectiveness of TAPRIO</a></h2>
+<table><thead><tr><th>With TAPRIO?</th><th></th></tr></thead><tbody>
+<tr><td>Yes</td><td><img src="../data/0619/w_taprio/80m/80m_taprio.png" alt="" /></td></tr>
+<tr><td>No</td><td><img src="../data/0619/wo_taprio/80m/80m.png" alt="" /></td></tr>
+</tbody></table>
+<h2 id="the-effectiveness-of-signal-strength"><a class="header" href="#the-effectiveness-of-signal-strength">The Effectiveness of Signal Strength</a></h2>
+<h3 id="under-general-signal-condition"><a class="header" href="#under-general-signal-condition">Under General Signal Condition</a></h3>
+<table><thead><tr><th>Message Class</th><th>Without TAPRIO</th><th>With TAPRIO</th></tr></thead><tbody>
+<tr><td>Control</td><td><img src="../data/0613/wo_taprio/general/port8000.png" alt="" /></td><td><img src="../data/0613/w_taprio/general/port8000.png" alt="" /></td></tr>
+<tr><td>Camera</td><td><img src="../data/0613/wo_taprio/general/port8002.png" alt="" /></td><td><img src="../data/0613/w_taprio/general/port8000.png" alt="" /></td></tr>
+<tr><td>Point Cloud</td><td><img src="../data/0613/wo_taprio/general/port8003.png" alt="" /></td><td><img src="../data/0613/w_taprio/general/port8000.png" alt="" /></td></tr>
+<tr><td>Status</td><td><img src="../data/0613/wo_taprio/general/port8001.png" alt="" /></td><td><img src="../data/0613/w_taprio/general/port8000.png" alt="" /></td></tr>
+</tbody></table>
+<h3 id="under-good-signal-condition"><a class="header" href="#under-good-signal-condition">Under Good Signal Condition</a></h3>
+<table><thead><tr><th>Message Class</th><th>Without TAPRIO</th><th>With TAPRIO</th></tr></thead><tbody>
+<tr><td>Control</td><td><img src="../data/0613/wo_taprio/good/port8000.png" alt="" /></td><td><img src="../data/0613/w_taprio/good/port8000.png" alt="" /></td></tr>
+<tr><td>Camera</td><td><img src="../data/0613/wo_taprio/good/port8002.png" alt="" /></td><td><img src="../data/0613/w_taprio/good/port8000.png" alt="" /></td></tr>
+<tr><td>Point Cloud</td><td><img src="../data/0613/wo_taprio/good/port8003.png" alt="" /></td><td><img src="../data/0613/w_taprio/good/port8000.png" alt="" /></td></tr>
+<tr><td>Status</td><td><img src="../data/0613/wo_taprio/good/port8001.png" alt="" /></td><td><img src="../data/0613/w_taprio/good/port8000.png" alt="" /></td></tr>
+</tbody></table>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="3.3-benchmark.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="3.2-priority_translation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
+                                                    <a rel="next" href="4-zenoh-cits.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
                         <div style="clear: both"></div>
                     </nav>
@@ -185,10 +232,13 @@ vanetza-btp-service repository.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="3.3-benchmark.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="3.2-priority_translation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
+                                    <a rel="next" href="4-zenoh-cits.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                             </nav>
 
         </div>

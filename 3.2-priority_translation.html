@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>ETSI C-ITS on Zenoh - Zenoh for Vehicle Network Guide</title>
+        <title>Priority Translation - Zenoh for Vehicle Network Guide</title>
                 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html" class="active"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html" class="active"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -143,41 +143,129 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="etsi-c-its-on-zenoh"><a class="header" href="#etsi-c-its-on-zenoh">ETSI C-ITS on Zenoh</a></h1>
-<p>The work aims to enable the vehicle-to-vehicle communication
-capability on Zenoh, in which the European C-ITS standard is
-preferred. It resues the protocols and data format already implemented
-in the Vanetza project (<a href="https://www.vanetza.org/">doc</a>). There are
-two major works planned in the project.</p>
-<ol>
-<li>Integrate the BTP/GN network stack from Vanetza as the replacement
-of TCP/IP on Zenoh. It enables high-level applications to process
-vehicle-to-anything messages in a native way, and enables
-geographical data multicast and peer discovery.</li>
-<li>The Zenoh routing algorithm should be modified to recognize the
-movement of vehicles according to geographical information.</li>
-</ol>
-<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
-<p>The overall architecture is shown in the figure below. The BTP/GN
-stack will be added to Zenoh apart from existing TCP/IP stack. A
-dedicated Zenoh-to-C-ITS brige will be implemented to process messages
-defined in ETSI C-ITS.</p>
-<p><img src="figures/cits-on-zenoh.drawio.png" alt="" /></p>
-<h2 id="btp-integration-in-rust-and-zenoh"><a class="header" href="#btp-integration-in-rust-and-zenoh">BTP Integration in Rust and Zenoh</a></h2>
-<p>This is a working-in-progress task to add BTP/GN link to Zenoh. The
-initial step is to implement the Rust interface for Vanetza's C++ BTP
-socket. The code implementqation can be found in the
-vanetza-btp-service repository.</p>
-<p><a href="https://github.com/NEWSLabNTU/vanetza-btp-service/">vanetza-btp-service</a></p>
+                        <h1 id="priority-translation"><a class="header" href="#priority-translation">Priority Translation</a></h1>
+<p>The priority is used to mark the urgentness of the data packets, which
+presents in each layer of protocols for slightly different purposes.</p>
+<p><img src="figures/tsn-priority.drawio.png" alt="" /></p>
+<ul>
+<li>
+<p>Zenoh priority in userspace</p>
+<p>It is an internal priotiy defined in the Zenoh network.</p>
+</li>
+<li>
+<p>Linux socket priority</p>
+<p>The priority is used within the Linux system, which are respected
+by Linux traffic control (TC) policies priority.</p>
+</li>
+<li>
+<p>Traffic class</p>
+<p>The traffic class on marked on packets on TX hardware queue. The
+Linux kernel maps the socket priorities to traffic classes before
+putting them to hardware queues.</p>
+</li>
+<li>
+<p>VLAN Priority Code Point (PCP)</p>
+<p>The priority number is labeled in the VLAN header, which enables
+layer 2 queing and traffic control defined in IEEE 802.1Q
+standard.</p>
+</li>
+</ul>
+<h1 id="priority-mapping-practices"><a class="header" href="#priority-mapping-practices">Priority Mapping Practices</a></h1>
+<h2 id="setting-socket-priority-in-programs"><a class="header" href="#setting-socket-priority-in-programs">Setting Socket Priority in Programs</a></h2>
+<p>In this TSN network, the application is responsible for providing
+desired priority on data packets.  The standard method is to configure
+the <code>SO_PRIORITY</code> option on sockets using the <code>setsockopt</code> system
+call.  Here are C and Rust examples.</p>
+<p>In the C programming language, the socket is represented by a file
+descriptor.  The file descriptor and the priority number are provided
+to <code>setsockopt()</code>.</p>
+<pre><code class="language-c">#include &lt;sys/socket.h&gt;
+
+// Open a socket
+int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+// Set the SO_PRIORITY to 6
+int priority = 6;
+int ret = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &amp;priority, sizeof(priority));
+if (ret &lt; 0) { /* error */ }
+</code></pre>
+<p>In the Rust programming language, a TCP connection is created by a
+<code>TcpStream</code> and the underlying file descriptor is obtained from the
+stream.  We call the <code>setsockopt()</code> from the
+<a href="https://crates.io/crates/nix">nix</a> library to configure the socket
+priority.</p>
+<pre><pre class="playground"><code class="language-rust">
+<span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use nix::sys::socket::{sockopt::Priority, getsockopt, setsockopt};
+use std::net::TcpStream;
+use std::os::unix::io::AsRawFd;
+
+// Create a TCP socket
+let mut stream = TcpStream::connect(&quot;11.22.33.44&quot;)?;
+
+// The the underlying file descriptor of the socket.
+let fd = stream.as_raw_fd();
+
+// Set SO_PRIORITY to 6.
+setsockopt(fd, Priority, 6)?;
+<span class="boring">}
+</span></code></pre></pre>
+<h3 id="mapping-socket-priority-to-traffic-classes"><a class="header" href="#mapping-socket-priority-to-traffic-classes">Mapping Socket Priority to Traffic Classes</a></h3>
+<p>The traffic classes are respected by hardware queues within network
+cards. This is an example TAPRIO qdisc policy configured on physical
+network device <code>eth0</code> the device.</p>
+<pre><code class="language-sh">sudo tc qdisc replace dev eth0 parent root handle 100 taprio \
+                     num_tc 3 \
+                     map 2 2 1 0 2 2 2 2 2 2 2 2 2 2 2 2 \
+                     queues 1@0 1@0 1@0 \
+                     base-time 1528743495910289987 \
+                     sched-entry S 01 300000 \
+                     sched-entry S 02 300000 \
+                     sched-entry S 04 400000 \
+                     flags 0x1 \
+                     txtime-delay 200000 \
+                     clockid CLOCK_TAI 
+</code></pre>
+<p>Here is the break down of the command.</p>
+<ul>
+<li>
+<p><code>num_tc</code>: number of traffic class</p>
+</li>
+<li>
+<p><code>map</code>: The relationship between Linux priority and traffic class.</p>
+</li>
+<li>
+<p><code>queue</code>: The queues in &quot;count@offset&quot; notation specifies the queue
+range for each traffic class. According to the official
+documents, the ranges should not overlap and must be a contiguous
+range of queues.</p>
+</li>
+<li>
+<p><code>flags</code> configures the mode of operation.  It can be 0x1 or
+0x2. Enabling the execution of the Task Admission Control (TAS)
+functionality either in software or hardware.</p>
+</li>
+</ul>
+<h3 id="mapping-socket-priority-to-vlan-pcp"><a class="header" href="#mapping-socket-priority-to-vlan-pcp">Mapping Socket Priority to VLAN PCP</a></h3>
+<p>This command line creates a virtual VLAN device named <code>vlan1</code> with
+socket priority to VLAN PCP mappings for egress packets. This exmaple
+simply maps socket priority 0 to PCP 1, socket priority 1 to PCP 1 and
+so on.</p>
+<pre><code class="language-sh">sudo ip link set dev vlan1 type vlan egress 0:0 1:1 2:2 3:3 4:4 5:5 6:6 7:7
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="3.3-benchmark.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="3.1-network_hardware.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
+                                                    <a rel="next" href="3.3-benchmark.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
                         <div style="clear: both"></div>
                     </nav>
@@ -185,10 +273,13 @@ vanetza-btp-service repository.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="3.3-benchmark.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="3.1-network_hardware.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
+                                    <a rel="next" href="3.3-benchmark.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                             </nav>
 
         </div>

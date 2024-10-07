@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>ETSI C-ITS on Zenoh - Zenoh for Vehicle Network Guide</title>
+        <title>Network Hardware - Zenoh for Vehicle Network Guide</title>
                 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html" class="active"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html" class="active"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -143,41 +143,82 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="etsi-c-its-on-zenoh"><a class="header" href="#etsi-c-its-on-zenoh">ETSI C-ITS on Zenoh</a></h1>
-<p>The work aims to enable the vehicle-to-vehicle communication
-capability on Zenoh, in which the European C-ITS standard is
-preferred. It resues the protocols and data format already implemented
-in the Vanetza project (<a href="https://www.vanetza.org/">doc</a>). There are
-two major works planned in the project.</p>
-<ol>
-<li>Integrate the BTP/GN network stack from Vanetza as the replacement
-of TCP/IP on Zenoh. It enables high-level applications to process
-vehicle-to-anything messages in a native way, and enables
-geographical data multicast and peer discovery.</li>
-<li>The Zenoh routing algorithm should be modified to recognize the
-movement of vehicles according to geographical information.</li>
-</ol>
-<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
-<p>The overall architecture is shown in the figure below. The BTP/GN
-stack will be added to Zenoh apart from existing TCP/IP stack. A
-dedicated Zenoh-to-C-ITS brige will be implemented to process messages
-defined in ETSI C-ITS.</p>
-<p><img src="figures/cits-on-zenoh.drawio.png" alt="" /></p>
-<h2 id="btp-integration-in-rust-and-zenoh"><a class="header" href="#btp-integration-in-rust-and-zenoh">BTP Integration in Rust and Zenoh</a></h2>
-<p>This is a working-in-progress task to add BTP/GN link to Zenoh. The
-initial step is to implement the Rust interface for Vanetza's C++ BTP
-socket. The code implementqation can be found in the
-vanetza-btp-service repository.</p>
-<p><a href="https://github.com/NEWSLabNTU/vanetza-btp-service/">vanetza-btp-service</a></p>
+                        <h1 id="using-tsn-enabled-network-hardware"><a class="header" href="#using-tsn-enabled-network-hardware">Using TSN-enabled Network Hardware</a></h1>
+<p>The hardware card must be carefully selected to enable full hardware
+offloading on Linux. The Intel I210
+(<a href="https://cdrdv2-public.intel.com/333016/333016%20-%20I210_Datasheet_v_3_7.pdf">spec</a>)
+is recommended in our settings.</p>
+<h2 id="verifying-the-network-card"><a class="header" href="#verifying-the-network-card">Verifying the Network Card</a></h2>
+<p>The network device must have at least 2 or more builtin hardware
+queues builtin. To verify it,</p>
+<pre><code class="language-sh">ethtool -l eth0
+</code></pre>
+<p>It shows that Intel I210 has at least 4 channels.</p>
+<pre><code>Channel parameters for eth0
+Pre-set maximums:
+RX:		0
+TX:		0
+Other:		1
+Combined:	4
+Current hardware settings:
+RX:		0
+TX:		0
+Other:		1
+Combined:	4
+</code></pre>
+<p>The second is the check whether the card suppots full hardware
+offloading.  To verify it, create a TAPRIO policy on the device with
+<code>flag 0x1</code>.  It should run without erros.</p>
+<pre><code class="language-sh">sudo tc qdisc replace dev eth0 parent root handle 100 taprio \
+                     num_tc 3 \
+                     map 2 2 1 0 2 2 2 2 2 2 2 2 2 2 2 2 \
+                     queues 1@0 1@0 1@0 \
+                     base-time 1528743495910289987 \
+                     sched-entry S 01 300000 \
+                     sched-entry S 02 300000 \
+                     sched-entry S 04 400000 \
+                     flags 0x1 \
+                     txtime-delay 200000 \
+                     clockid CLOCK_TAI 
+</code></pre>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<h3 id="cannot-detect-interface"><a class="header" href="#cannot-detect-interface">Cannot detect interface</a></h3>
+<ul>
+<li>The port used for the experiment cannot be detected. It is likely a hardware issue.</li>
+<li>After we removed the network card and switched it to another slot, then reconfigured the IP and VLAN settings.</li>
+</ul>
+<p>Unable to ping the other VLAN.
+Shortly after booting up, unable to ping even the physical interfaces.
+Checked the routes:</p>
+<pre><code>192.168.1.0/24 dev vlan1 proto kernel scope link src 192.168.1.2 metric 400 linkdown 
+192.168.7.0/24 dev enP4p4s0 proto kernel scope link src 192.168.7.2 metric 102 linkdown
+</code></pre>
+<p>Display as &quot;linkdown,&quot; manually bringing them up (using ip link set up) had no effect.
+Physical interface status displayed as:</p>
+<pre><code>&lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; 
+</code></pre>
+<p>Attempts such as reconfiguring IP settings and restarting via nmtui were unsuccessful.
+The issue was ultimately resolved by changing the network card to a different slot.</p>
+<!-- ### socket-priority experiment on 2023/08/11 and 2023/08/18 -->
+<!-- **Later, we discovered that the errors encountered that day were due to the failure to enable priority 0,** -->
+<!-- **causing ARP packets not to be transmitted.** -->
+<!-- **These are the experimental log.** -->
+<!-- [ARP issues](./TAPRIO%20experiment/ARP%20Issues.md) -->
+<!-- ### Calculate RTT -->
+<!-- **We use RTT to verify whether the queue's activation and latency behave as expected.** -->
+<!-- [Round Trip Time](./TAPRIO%20experiment/Round%20Trip%20Time.md) -->
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="3.3-benchmark.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="3-tsn.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
+                                                    <a rel="next" href="3.2-priority_translation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
                         <div style="clear: both"></div>
                     </nav>
@@ -185,10 +226,13 @@ vanetza-btp-service repository.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="3.3-benchmark.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="3-tsn.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
+                                    <a rel="next" href="3.2-priority_translation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                             </nav>
 
         </div>
