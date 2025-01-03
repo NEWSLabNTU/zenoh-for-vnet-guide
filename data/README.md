@@ -34,7 +34,7 @@ Through the information mentioned above, we can list the characteristics of vari
 | Control | 1K | 100 | 128 |
 | Camera | 4M | 33.33 | 1K |
 | Point Cloud / Proceed Data | 16M | 100 | 1K |
-| Camera | 5K | 100 | 128 |
+| Status | 5K | 100 | 128 |
 
 
 | Type | Delay Constraint (D<sub>i</sub>) | Reliability Constraint (R<sub>i</sub>) |
