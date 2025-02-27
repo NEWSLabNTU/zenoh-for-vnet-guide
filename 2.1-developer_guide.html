@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>ETSI C-ITS on Zenoh - Zenoh for Vehicle Network Guide</title>
+        <title>Developer Guide - Zenoh for Vehicle Network Guide</title>
                 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internals.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-developer_guide.html"><strong aria-hidden="true">2.1.</strong> Developer Guide</a></li><li class="chapter-item expanded "><a href="2.2-zenoh_io.html"><strong aria-hidden="true">2.2.</strong> Zenoh I/O</a></li></ol></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html" class="active"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internals.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-developer_guide.html" class="active"><strong aria-hidden="true">2.1.</strong> Developer Guide</a></li><li class="chapter-item expanded "><a href="2.2-zenoh_io.html"><strong aria-hidden="true">2.2.</strong> Zenoh I/O</a></li></ol></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -143,41 +143,45 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="etsi-c-its-on-zenoh"><a class="header" href="#etsi-c-its-on-zenoh">ETSI C-ITS on Zenoh</a></h1>
-<p>The work aims to enable the vehicle-to-vehicle communication
-capability on Zenoh, in which the European C-ITS standard is
-preferred. It resues the protocols and data format already implemented
-in the Vanetza project (<a href="https://www.vanetza.org/">doc</a>). There are
-two major works planned in the project.</p>
-<ol>
-<li>Integrate the BTP/GN network stack from Vanetza as the replacement
-of TCP/IP on Zenoh. It enables high-level applications to process
-vehicle-to-anything messages in a native way, and enables
-geographical data multicast and peer discovery.</li>
-<li>The Zenoh routing algorithm should be modified to recognize the
-movement of vehicles according to geographical information.</li>
-</ol>
-<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
-<p>The overall architecture is shown in the figure below. The BTP/GN
-stack will be added to Zenoh apart from existing TCP/IP stack. A
-dedicated Zenoh-to-C-ITS brige will be implemented to process messages
-defined in ETSI C-ITS.</p>
-<p><img src="figures/cits-on-zenoh.drawio.png" alt="" /></p>
-<h2 id="btp-integration-in-rust-and-zenoh"><a class="header" href="#btp-integration-in-rust-and-zenoh">BTP Integration in Rust and Zenoh</a></h2>
-<p>This is a working-in-progress task to add BTP/GN link to Zenoh. The
-initial step is to implement the Rust interface for Vanetza's C++ BTP
-socket. The code implementqation can be found in the
-vanetza-btp-service repository.</p>
-<p><a href="https://github.com/NEWSLabNTU/vanetza-btp-service/">vanetza-btp-service</a></p>
+                        <h1 id="developer-guide-for-zenoh"><a class="header" href="#developer-guide-for-zenoh">Developer Guide for Zenoh</a></h1>
+<h2 id="the-zenoh-family"><a class="header" href="#the-zenoh-family">The Zenoh Family</a></h2>
+<h3 id="the-core-library"><a class="header" href="#the-core-library">The Core Library</a></h3>
+<p>Zenoh has two major implementations. One is the <strong>Zenoh</strong> written in
+Rust and the other is <strong>Zenoh-Pico</strong>, a native C re-implementation for
+constrained devices.</p>
+<p>The <strong>Zenoh</strong> library is feature-complete, bleeding-edge and uses the
+fancy safe Rust programming language. It provides every necessary to
+setup a Zenoh service, including the user API, routing and I/O
+implementations. It is recommended for those working on algorithm
+developement and research.</p>
+<p>https://github.com/eclipse-zenoh/zenoh</p>
+<p><strong>Zenoh Pico</strong>, on the other hand, focuses on resource constrained
+devices. It is written in pure C to ensure its compatibility with
+embedded devices. It features low memory footprint and and lower CPU
+usage, but lacks some of the features compared to the Zenoh library.</p>
+<p>https://github.com/eclipse-zenoh/zenoh-pico</p>
+<h3 id="language-bindings"><a class="header" href="#language-bindings">Language Bindings</a></h3>
+<ul>
+<li>Python https://github.com/eclipse-zenoh/zenoh-python</li>
+<li>C https://github.com/eclipse-zenoh/zenoh-c</li>
+<li>C++ https://github.com/eclipse-zenoh/zenoh-cpp</li>
+</ul>
+<h3 id="bridges"><a class="header" href="#bridges">Bridges</a></h3>
+<h2 id="building-zenoh"><a class="header" href="#building-zenoh">Building Zenoh</a></h2>
+<pre><code class="language-sh">cargo build --all-targets --profile fast
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="3.3-benchmark.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="2-zenoh_internals.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
+                                                    <a rel="next" href="2.2-zenoh_io.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
                         <div style="clear: both"></div>
                     </nav>
@@ -185,10 +189,13 @@ vanetza-btp-service repository.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="3.3-benchmark.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="2-zenoh_internals.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
+                                    <a rel="next" href="2.2-zenoh_io.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                             </nav>
 
         </div>

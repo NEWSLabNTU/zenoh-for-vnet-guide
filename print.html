@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internal.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internals.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-developer_guide.html"><strong aria-hidden="true">2.1.</strong> Developer Guide</a></li><li class="chapter-item expanded "><a href="2.2-zenoh_io.html"><strong aria-hidden="true">2.2.</strong> Zenoh I/O</a></li></ol></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -250,6 +250,34 @@ following table.</p>
 <tr><td>true</td><td>Zenoh will not wait to batch this message with others to reduce the bandwith. ( lower     latency )</td></tr>
 <tr><td>false</td><td>Zenoh will not wait to batch this message with others to reduce the bandwith.</td></tr>
 </tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="developer-guide-for-zenoh"><a class="header" href="#developer-guide-for-zenoh">Developer Guide for Zenoh</a></h1>
+<h2 id="the-zenoh-family"><a class="header" href="#the-zenoh-family">The Zenoh Family</a></h2>
+<h3 id="the-core-library"><a class="header" href="#the-core-library">The Core Library</a></h3>
+<p>Zenoh has two major implementations. One is the <strong>Zenoh</strong> written in
+Rust and the other is <strong>Zenoh-Pico</strong>, a native C re-implementation for
+constrained devices.</p>
+<p>The <strong>Zenoh</strong> library is feature-complete, bleeding-edge and uses the
+fancy safe Rust programming language. It provides every necessary to
+setup a Zenoh service, including the user API, routing and I/O
+implementations. It is recommended for those working on algorithm
+developement and research.</p>
+<p>https://github.com/eclipse-zenoh/zenoh</p>
+<p><strong>Zenoh Pico</strong>, on the other hand, focuses on resource constrained
+devices. It is written in pure C to ensure its compatibility with
+embedded devices. It features low memory footprint and and lower CPU
+usage, but lacks some of the features compared to the Zenoh library.</p>
+<p>https://github.com/eclipse-zenoh/zenoh-pico</p>
+<h3 id="language-bindings"><a class="header" href="#language-bindings">Language Bindings</a></h3>
+<ul>
+<li>Python https://github.com/eclipse-zenoh/zenoh-python</li>
+<li>C https://github.com/eclipse-zenoh/zenoh-c</li>
+<li>C++ https://github.com/eclipse-zenoh/zenoh-cpp</li>
+</ul>
+<h3 id="bridges"><a class="header" href="#bridges">Bridges</a></h3>
+<h2 id="building-zenoh"><a class="header" href="#building-zenoh">Building Zenoh</a></h2>
+<pre><code class="language-sh">cargo build --all-targets --profile fast
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="zenoh-io"><a class="header" href="#zenoh-io">Zenoh I/O</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="time-sensitive-network-tsn-on-linux"><a class="header" href="#time-sensitive-network-tsn-on-linux">Time-Sensitive Network (TSN) on Linux</a></h1>
 <p>The work was done under the cooperation of NEWSLAB, National Taiwan
 University and ADLINK Corp. Most of the content are copied from the
