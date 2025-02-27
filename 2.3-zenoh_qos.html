@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Data Transport - Zenoh for Vehicle Network Guide</title>
+        <title>QoS Parameters - Zenoh for Vehicle Network Guide</title>
                 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internals.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-developer_guide.html"><strong aria-hidden="true">2.1.</strong> Developer Guide</a></li><li class="chapter-item expanded "><a href="2.2-zenoh_io.html" class="active"><strong aria-hidden="true">2.2.</strong> Data Transport</a></li><li class="chapter-item expanded "><a href="2.3-zenoh_qos.html"><strong aria-hidden="true">2.3.</strong> QoS Parameters</a></li><li class="chapter-item expanded "><a href="2.4-zenoh_routing.html"><strong aria-hidden="true">2.4.</strong> Routing</a></li></ol></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="1-overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="2-zenoh_internals.html"><strong aria-hidden="true">2.</strong> Zenoh Internals</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-developer_guide.html"><strong aria-hidden="true">2.1.</strong> Developer Guide</a></li><li class="chapter-item expanded "><a href="2.2-zenoh_io.html"><strong aria-hidden="true">2.2.</strong> Data Transport</a></li><li class="chapter-item expanded "><a href="2.3-zenoh_qos.html" class="active"><strong aria-hidden="true">2.3.</strong> QoS Parameters</a></li><li class="chapter-item expanded "><a href="2.4-zenoh_routing.html"><strong aria-hidden="true">2.4.</strong> Routing</a></li></ol></li><li class="chapter-item expanded "><a href="3-tsn.html"><strong aria-hidden="true">3.</strong> TSN Network on Linux</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-network_hardware.html"><strong aria-hidden="true">3.1.</strong> Network Hardware</a></li><li class="chapter-item expanded "><a href="3.2-priority_translation.html"><strong aria-hidden="true">3.2.</strong> Priority Translation</a></li><li class="chapter-item expanded "><a href="3.3-benchmark.html"><strong aria-hidden="true">3.3.</strong> Benchmark</a></li></ol></li><li class="chapter-item expanded "><a href="4-zenoh-cits.html"><strong aria-hidden="true">4.</strong> ETSI C-ITS on Zenoh</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -143,29 +143,17 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="zenoh-data-transport"><a class="header" href="#zenoh-data-transport">Zenoh Data Transport</a></h1>
-<p>A <strong>transport</strong> tracks a high-level relation to a Zenoh peer on the
-network, which maintains one or more <strong>links</strong> toward that peer. A
-<strong>link</strong> is a basic unit of network connection, such as a TCP, a UDP
-or an UNIX domain socket.</p>
-<p>As you can see in the figure, a tranport has a RX head and a TX head,
-respectively serve for data ingress and egress work loads. Both heads
-contain 8 sequence number counters for 8 levels of priorities.</p>
-<p>A transport also stores a list of related links. Each link has a
-pipeline of 8 queues attached beforehand (named <code>TrasnmissionPipeline</code>
-in source code), each serving for a respective priority. In this
-pipeline, the messages to be sent are arranged into batches, and the
-batches are later sent to the socket wrapped in the link struct.</p>
+                        <h1 id="qos-parameters"><a class="header" href="#qos-parameters">QoS Parameters</a></h1>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="2.1-developer_guide.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="2.2-zenoh_io.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
-                                                    <a rel="next" href="2.3-zenoh_qos.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                                    <a rel="next" href="2.4-zenoh_routing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -175,11 +163,11 @@ batches are later sent to the socket wrapped in the link struct.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="2.1-developer_guide.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="2.2-zenoh_io.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
-                                    <a rel="next" href="2.3-zenoh_qos.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                    <a rel="next" href="2.4-zenoh_routing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                             </nav>
