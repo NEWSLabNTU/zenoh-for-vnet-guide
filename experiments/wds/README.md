@@ -11,7 +11,7 @@ This experiment is composed of **two BPIs** connected wirelessly via Wireless Di
 
 The experiment include two computer which one is a *Client* and the second is *Server*. Then two devices BPI-A and BPI-B. The computers as connected via Ethernet cable to the each BPI and a wireless connection is established between the BPIs (i.e., WDS).
 
-![network_topology](diagrams/wds_network_topology.svg)
+![network_topology](wds_network_topology.svg)
 
 **Pre-Conditions**
 - Be sure that you can communicate with the all devices on the network, e.g., by using ping. 
