@@ -135,6 +135,12 @@ Internet is required for the next section!
  
  ... let's [use the remaining space on our disk](#Creating-a-new-partition) :)
  
+**Note**
+Please keep the naming convension that the sticker presents the IP address. For example, B = .2 (192.168.1.2), A = .1 (192.168.1.1)
+![BPI-MARK](figures/bpi-mark.jpg)
+
+
+
 #### Troubleshooting:
  
 - If the device connects and then disconnects (i.e., ttyUSB0), then remove the 'brltty' package (solution found at [askubuntu.com](https://askubuntu.com/questions/1482767/error-while-connecting-a-device-with-ch341))
@@ -546,7 +552,7 @@ aarch64-linux-musl-gcc --version
 If so, define *CC* env variable to use the musl-gcc toolchain:
 ```
 export CC=aarch64-linux-musl-gcc
-```l
+```
 
 ### Build
 Build the Zenoh project for the *aarch64* target:
