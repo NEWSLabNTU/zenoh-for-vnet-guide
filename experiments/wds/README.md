@@ -60,7 +60,7 @@ iperf3 -c <IP> -f M -i 1 -t 180
 
 #### Server
 ```
-
+systemctl iperf3 start
 ```
 
 #### Throughtput
@@ -125,8 +125,8 @@ systemctl netperf start
 
 **Client**
 ```
-./z_ping --mode client --connect tcp/192.168.1.1:7447 \
-    --warmup 5 --no-multicast-scouting --samples 100 1024
+./z_ping --mode client --connect tcp/192.168.1.2:7447 \
+    --warmup 5 --no-multicast-scouting --samples 55000 1048576
 ```
 
 **Server**
@@ -155,3 +155,27 @@ systemctl netperf start
 | -------- | -------- | -------- |
 | 38.132 ms   | 40.705 ms     | 78.449 ms
 
+
+### zenoh (no-express)
+
+
+**Client**
+```
+./z_ping --mode client --connect tcp/192.168.1.2:7447 \
+    --warmup 5 --no-multicast-scouting --samples 3400 --no-express 1048576
+```
+
+**Server**
+```
+./z_pong --mode client --connect tcp/192.168.1.1:7447 --no-express
+```
+
+##### Road Trip Time 1MB/1MB
+
+| Interval | Request payload | Response payload
+| -------- | -------- | -------- |
+| 191.121 s | 1048576 Bytes | 1048576 Bytes |
+
+| Min. Latency      |  Avg. Latency      |  Max. Latency
+| -------- | -------- | -------- |
+| 52.010 ms   | 56.212 ms     | 492.311 ms
