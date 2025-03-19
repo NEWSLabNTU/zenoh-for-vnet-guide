@@ -31,10 +31,10 @@ Through the information mentioned above, we can list the characteristics of vari
 
 | Type | Min Bits/s rate | Production Interval (ms) | Payload Size (Bytes) |
 | :-----| ----: | :----: | :----: |
-| Control | 1K | 100 | 128 |
+| Control | 10K | 100 | 128 |
 | Camera | 4M | 33.33 | 1K |
 | Point Cloud / Proceed Data | 16M | 100 | 1K |
-| Status | 5K | 100 | 128 |
+| Status | 10K | 100 | 128 |
 
 
 | Type | Delay Constraint (D<sub>i</sub>) | Reliability Constraint (R<sub>i</sub>) |
