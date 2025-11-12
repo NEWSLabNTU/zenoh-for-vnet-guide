@@ -69,9 +69,7 @@ systemctl iperf3 start
 | -------- | -------- | -------- |
 | 0.00-180.00 sec     | 19.1 GBytes     | 109 MBytes/sec     |
 
-
-![bandwidth_iperf](https://hackmd.io/_uploads/SyP5SkmKkl.svg =500x)
-
+<img src="https://hackmd.io/_uploads/SyP5SkmKkl.svg" alt="bandwidth_iperf" width="500" />
 
 ### netperf
 
