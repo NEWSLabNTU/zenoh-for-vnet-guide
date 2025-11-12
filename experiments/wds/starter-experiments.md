@@ -67,4 +67,4 @@ However, it is possible that the long interval (10s) has buffered the impact. We
 
 - Test #5 confirmed that thermal throttling further degrades performance.
 
-- Disabling encryption did not improve throughput.
+- Disabling authentication did not improve throughput.
