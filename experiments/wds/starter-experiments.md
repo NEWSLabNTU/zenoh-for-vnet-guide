@@ -63,7 +63,7 @@ However, it is possible that the long interval (10s) has buffered the impact. We
 
 
 ## Conclusions
-- The initial increase in speed for i=10 and i=0 is quite confusing, it may caused by the reduction of CPU overhead from iperf3’s reporting mechanism.
+- The initial increase in speed for i=10 and i=0 is quite confusing, it may cause by the reduction of CPU overhead from iperf3’s reporting mechanism.
 
 - Test #5 confirmed that thermal throttling further degrades performance.
 
