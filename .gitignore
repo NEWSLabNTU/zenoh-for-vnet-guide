@@ -8,3 +8,6 @@
 
 # draw.io
 *.drawio.bkp
+
+# logs
+*.log
