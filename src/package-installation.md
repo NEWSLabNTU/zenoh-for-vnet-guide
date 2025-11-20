@@ -4,16 +4,15 @@ Since Banana Pi R3 uses ARM-v8 architecture, it is 64 bit and mostly the things 
 ## Package Manager
 In the login message we can see the package manager has been switched from `opkg` to `apk`, you can see the table.
 
-| OPKG Command           |  APK Equivalent     |   Description            |
-| ------------------------------------------------------------------
-| `opkg install <pkg>`   | `apk add <pkg>`     |  Install a package       |
-| `opkg remove <pkg>`    | `apk del <pkg>`     |  Remove a package        |
-| `opkg upgrade`         | `apk upgrade`       |  Upgrade all packages    |
-| `opkg files <pkg>`     | `apk info -L <pkg>` |  List package contents   |
-| `opkg list-installed`  | `apk info`          |  List installed packages |
-| `opkg update`          | `apk update`        |  Update package lists    |
-| `opkg search <pkg>`    | `apk search <pkg>`  |  Search for packages     |
- ------------------------------------------------------------------
+| OPKG Command          | APK Equivalent      | Description             |
+|-----------------------|---------------------|-------------------------|
+| `opkg install <pkg>`  | `apk add <pkg>`     | Install a package       |
+| `opkg remove <pkg>`   | `apk del <pkg>`     | Remove a package        |
+| `opkg upgrade`        | `apk upgrade`       | Upgrade all packages    |
+| `opkg files <pkg>`    | `apk info -L <pkg>` | List package contents   |
+| `opkg list-installed` | `apk info`          | List installed packages |
+| `opkg update`         | `apk update`        | Update package lists    |
+| `opkg search <pkg>`   | `apk search <pkg>`  | Search for packages     |
 
 ## Connect to computer
 Since I don't know how to connect to the internet in R404, I decide to connect to the internet via my laptop.
@@ -29,7 +28,7 @@ Now you should have the accessibility of the internet.
 
 ## Update package lists
 ```sh
-# apk update
+apk update
 ```
 You would see a lot of lists being updated. If you see
 ```
@@ -41,7 +40,7 @@ WARNING: updating and opening https://downloads.openwrt.org/snapshots/targets/me
 ## Install packages
 Before installation, you can peek the information by `apk info <package>`.
 Install packages with
-```
-# apk add <package>
+```sh
+apk add <package>
 ```
 Remember, the WARNING message is not an error, it just check all the repositories every time.
